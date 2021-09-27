@@ -1,5 +1,6 @@
 import argparse
 import curses
+from prettytable import PrettyTable
 import signal
 import sys
 import time
@@ -83,31 +84,18 @@ class Gantty:
 
 
     def draw(self) -> None:
-        longest_task_id = max([len(str(task.id)) for task in self.tasks])
-        longest_task_name = max([len(task.name) for task in self.tasks])
-        longest_asignee_name = max([len(task.asignee) for task in self.tasks])
-
-        x_offset = 0
-        self.screen.addstr(0, x_offset, 'ID')
-
-        x_offset += longest_task_id + MARGIN
-        self.screen.addstr(0, x_offset, 'TASK NAME')
-
-        x_offset += longest_task_name + MARGIN
-        self.screen.addstr(0, x_offset, 'ASIGNEE')
+        table = PrettyTable()
+        table.field_names = ["ID", "Task name", "Asignee", "Gantt"]
+        table.align["ID"] = "r"
+        table.align["Task name"] = "l"
+        table.align["Asignee"] = "l"
+        table.align["Gantt"] = "l"
 
         for i, task in enumerate(self.tasks):
-            x_offset = 0
-            self.screen.addstr(i + 1, x_offset, str(task.id))
+            table.add_row([task.id, task.name, task.asignee, task.bar])
 
-            x_offset += longest_task_id + MARGIN
-            self.screen.addstr(i + 1, x_offset, task.name)
-
-            x_offset += longest_task_name + MARGIN
-            self.screen.addstr(i + 1, x_offset, task.asignee)
-
-            x_offset += longest_asignee_name + MARGIN
-            self.screen.addstr(i + 1, x_offset, task.bar)
+        for i, line in enumerate(table.get_string().splitlines()):
+            self.screen.addstr(i, 0, line)
 
 
     def exit(self, sig: int = None, frame = None) -> None:
