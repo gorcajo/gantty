@@ -1,0 +1,41 @@
+resources:
+  - name: alice
+  - name: bob
+  - name: common
+
+tasks:
+
+  - name: Task001
+    id: 0
+    duration: 7
+    depends_on: null
+    done: 0
+    asignee: alice
+
+  - name: Task002
+    id: 1
+    duration: 5
+    depends_on: null
+    done: 0
+    asignee: alice
+
+  - name: Task003
+    id: 2
+    duration: 2
+    depends_on: 0
+    done: 0
+    asignee: bob
+
+  - name: Task004
+    id: 3
+    duration: 10
+    depends_on: 2
+    done: 0
+    asignee: bob
+
+  - name: Verification
+    id: 4
+    duration: 10
+    depends_on: -1
+    done: 0
+    asignee: common
