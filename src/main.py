@@ -1,15 +1,6 @@
 import argparse
-import curses
 from prettytable import PrettyTable
-import signal
-import sys
-import time
-import traceback
 import yaml
-
-
-FRAME_RATE = 60
-MARGIN = 2
 
 
 class Gantty:
@@ -22,9 +13,6 @@ class Gantty:
 
         self.check_project()
         self.calculate_bars()
-
-        self.running = False
-        self.screen = None
 
 
     def check_project(self) -> None:
@@ -59,51 +47,27 @@ class Gantty:
 
                 resource.schedule_bars(task.duration)
 
-            elif task.depends_on > 0:
+            elif task.depends_on >= 0:
                 raise NotImplementedError()
+
+            else:
+                raise ValueError('Illegal "depends_on"')
 
             prev_task = task
 
 
-    def loop(self) -> None:
-        self.screen = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        self.screen.keypad(True)
-
-        self.running = True
-
-        while self.running:
-            try:
-                self.draw()
-                self.screen.refresh()
-                time.sleep(1 / FRAME_RATE)
-            except:
-                self.exit()
-                print(traceback.format_exc())
-
-
     def draw(self) -> None:
         table = PrettyTable()
-        table.field_names = ["ID", "Task name", "Asignee", "Gantt"]
-        table.align["ID"] = "r"
-        table.align["Task name"] = "l"
-        table.align["Asignee"] = "l"
-        table.align["Gantt"] = "l"
+        table.field_names = ['ID', 'Task name', 'Asignee', 'Gantt']
+        table.align['ID'] = 'r'
+        table.align['Task name'] = 'l'
+        table.align['Asignee'] = 'l'
+        table.align['Gantt'] = 'l'
 
         for i, task in enumerate(self.tasks):
             table.add_row([task.id, task.name, task.asignee, task.bar])
 
-        for i, line in enumerate(table.get_string().splitlines()):
-            self.screen.addstr(i, 0, line)
-
-
-    def exit(self, sig: int = None, frame = None) -> None:
-        curses.nocbreak()
-        self.screen.keypad(False)
-        curses.echo()
-        curses.endwin()
-        self.running = False
+        print(table)
 
 
 class Resource:
@@ -194,16 +158,10 @@ class Task:
         return self.__str__()
 
 
-def signal_handler(sig, frame):
-    print('You pressed Ctrl+C!')
-    sys.exit(0)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str, required=True, help='project file')
     args = parser.parse_args()
 
     gantty = Gantty(args.file)
-    signal.signal(signal.SIGINT, gantty.exit)
-    gantty.loop()
+    gantty.draw()
